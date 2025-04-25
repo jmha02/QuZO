@@ -52,10 +52,10 @@ import random
 import sys
 import wandb, pdb
 
-sys.path.append("/home/thomasjjc/project/quzo/Quantized_ZOLLM/large_models/quant_func")
+sys.path.append("/home/thomasjjc/project/QuZO/large_models/quant_func")
 
-# from quant_func.quant_model import *
-# from quant_func.quant_utils import *
+from quant_func.quant_model import *
+from quant_func.quant_utils import *
 # from quant_func.smothquant_models import *
 # from quant_func.qllm_models import *
 
@@ -252,7 +252,7 @@ class OurArguments(TrainingArguments):
 
     fp8_training: bool = False
     fp8_algo: str = "direct"
-    wandb_project: str = "LLM_ZO_Quantization"
+    wandb_project: str = "LLM_QuZO_github"
     optim: str = "sgd"  # Default opt
 
     slurm: str = False
@@ -267,7 +267,7 @@ class OurArguments(TrainingArguments):
     perturb_bits: int = 4
     bernperturb: bool = False
     quantized_perturb_ours: bool = False
-    mask_ratio: int = 50  # Default mask ratio of 50%
+    mask_ratio: int = 0  # Default mask ratio of 50%
 
 
 def parse_args():
@@ -410,14 +410,7 @@ class Framework:
                 init_by_real_act=self.args.prefix_init_by_real_act,
             )
         if self.args.tuning_type == "lora":
-            # from lora import LoRA
-
-            # LoRA(
-            #     model,
-            #     r=self.args.lora_r,
-            #     alpha=self.args.lora_alpha,
-            #     float16=self.args.load_float16,
-            # )
+  
             from peft import LoraConfig, get_peft_model
             config = LoraConfig(
                 r=self.args.lora_r,

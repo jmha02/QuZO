@@ -810,29 +810,29 @@ class OurTrainer(Trainer):
                 if self.control.should_epoch_stop or self.control.should_training_stop:
                     break
 
-                if self.args.eval_steps is not None and (total_steps + 1) % self.args.eval_steps == 0:
-                    print(f"=========================> Evaluating at step {total_steps + 1}... <=========================")
-                    # val_metrics = self.evaluate_func([], self.dev_samples)
-                    test_metrics = self.evaluate_func([], self.eval_samples)
-                    if "accuracy" in test_metrics:
-                        self.log({"test_acc": test_metrics["accuracy"]})
-                        wandb.log({"test_acc": test_metrics["accuracy"]})
-                    else:
-                        keys = list(test_metrics.keys())
-                        log_dict = {}
-                        for k in keys:
-                            log_dict['test_' + k] = test_metrics[k]
-                        self.log(log_dict)
-                        wandb.log(log_dict)
+                # if self.args.eval_steps is not None and (total_steps + 1) % self.args.eval_steps == 0:
+                #     print(f"=========================> Evaluating at step {total_steps + 1}... <=========================")
+                #     # val_metrics = self.evaluate_func([], self.dev_samples)
+                #     test_metrics = self.evaluate_func([], self.eval_samples)
+                #     if "accuracy" in test_metrics:
+                #         self.log({"test_acc": test_metrics["accuracy"]})
+                #         wandb.log({"test_acc": test_metrics["accuracy"]})
+                #     else:
+                #         keys = list(test_metrics.keys())
+                #         log_dict = {}
+                #         for k in keys:
+                #             log_dict['test_' + k] = test_metrics[k]
+                #         self.log(log_dict)
+                #         wandb.log(log_dict)
 
-                    max_memory_allocated = 0
-                    for device_id in range(torch.cuda.device_count()):
-                        # this is not accurate since max memory does not happen simultaneously across all devices
-                        max_memory_allocated += torch.cuda.max_memory_allocated(device_id)
-                    self.log({"peak_mem": max_memory_allocated / 1024 ** 3,
-                              "step_consumption": train_step_duration * 1000})
-                    wandb.log({"peak_mem": max_memory_allocated / 1024 ** 3,
-                               "step_consumption": train_step_duration * 1000})
+                #     max_memory_allocated = 0
+                #     for device_id in range(torch.cuda.device_count()):
+                #         # this is not accurate since max memory does not happen simultaneously across all devices
+                #         max_memory_allocated += torch.cuda.max_memory_allocated(device_id)
+                #     self.log({"peak_mem": max_memory_allocated / 1024 ** 3,
+                #               "step_consumption": train_step_duration * 1000})
+                #     wandb.log({"peak_mem": max_memory_allocated / 1024 ** 3,
+                #                "step_consumption": train_step_duration * 1000})
             if step < 0:
                 logger.warning(
                     "There seems to be not a single sample in your epoch_iterator, stopping training at step"
@@ -1529,3 +1529,66 @@ class OurTrainer(Trainer):
                 self.control = self.callback_handler.on_save(self.args, self.state, self.control)
             except Exception as e:
                 logger.warning(f"保存检查点时出错: {e}")
+
+    def evaluate_func(self, train_samples, eval_samples, one_train_set_per_eval_sample=False):
+        """
+        Evaluate function to calculate metrics during training.
+        If one_train_set_per_eval_sample is True, then each eval sample has its own training (demonstration) set.
+        """
+        from tqdm import tqdm
+        import numpy as np
+        
+        # Use the Framework.evaluate logic
+        logger.info(f"Evaluating {len(eval_samples)} samples")
+        
+        # For classification tasks
+        if hasattr(self, 'task') and hasattr(self.task, 'metric_name'):
+            metric_name = self.task.metric_name
+        else:
+            metric_name = "accuracy"
+        
+        # If we're using a classification approach
+        if hasattr(self.args, 'train_as_classification') and self.args.train_as_classification:
+            from metrics import calculate_metric, Prediction
+            
+            # Prepare the model for evaluation
+            self.model.eval()
+            
+            # Process each sample
+            predictions = []
+            for eval_sample in tqdm(eval_samples):
+                # Get the input for this sample
+                inputs = self._prepare_inputs(eval_sample)
+                
+                # Get model predictions
+                with torch.no_grad():
+                    outputs = self.model(**inputs)
+                    logits = outputs.logits
+                
+                # Get the scores and make prediction
+                scores = logits.detach().cpu().numpy()
+                if hasattr(eval_sample, 'correct_candidate'):
+                    if isinstance(eval_sample.correct_candidate, list):
+                        # For datasets with multiple correct answers
+                        correct_candidate_id = [
+                            eval_sample.candidates.index(c)
+                            for c in eval_sample.correct_candidate
+                        ]
+                    else:
+                        correct_candidate_id = eval_sample.candidates.index(
+                            eval_sample.correct_candidate
+                        )
+                    
+                    predictions.append(Prediction(
+                        correct_candidate=correct_candidate_id,
+                        predicted_candidate=int(np.argmax(scores)),
+                    ))
+            
+            # Calculate metrics
+            metrics = {metric_name: calculate_metric(predictions, metric_name)}
+            return metrics
+        
+        # Default evaluation for non-classification tasks
+        # Use HuggingFace's evaluate method
+        metrics = self.evaluate(ignore_keys_for_eval=None)
+        return metrics

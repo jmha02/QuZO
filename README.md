@@ -1,3 +1,42 @@
+# QuZO: Quantized Zero-Order Optimization for Large Language Models
+
+## Environment Setup
+
+### Using Conda
+You can easily set up the required environment using the provided YAML file:
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/QuZO.git
+cd QuZO
+
+# Create and activate the conda environment
+conda env create -f quzo_environment.yml
+conda activate llm_quzo
+
+# Install the quantization CUDA kernel
+cd large_models
+pip install ./quant
+```
+
+### Manual Installation
+Alternatively, you can set up the environment manually:
+```bash
+# Create conda environment
+conda create --name llm_quzo python=3.11
+conda activate llm_quzo
+
+# Install PyTorch and CUDA
+conda install pytorch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 pytorch-cuda=12.1 -c pytorch -c nvidia
+
+# Install dependencies
+pip install transformers==4.31.0 accelerate==0.26.0 sentencepiece bitsandbytes==0.41.1 peft==0.13.0
+pip install wandb datasets numpy<2.0.0 scikit-learn scipy tqdm
+
+# Install quantization CUDA kernel
+cd large_models
+pip install ./quant
+```
+
 # Quantized ZO Fine-Tuning Language Models 
 
 

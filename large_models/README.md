@@ -11,13 +11,13 @@ transformers==4.28.1
 accelerate==0.17.1
 
 New version 0417:
-conda create --name llm_qzo python=3.11
-conda install pytorch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 pytorch-cuda=12.2 -c pytorch -c nvidia 
+conda create --name llm_quzo python=3.11
+<!-- conda install pytorch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 pytorch-cuda=12.2 -c pytorch -c nvidia  -->
 conda install pytorch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 pytorch-cuda=12.1 -c pytorch -c nvidia
 
 
 transformers==4.31.0
-accelerate==0.17.1
+accelerate==0.26.0
 ```
 # Quantization CUDA kernel
 ```

@@ -298,7 +298,7 @@ def zo_quant_data(x, nbits=16,blk_exp=True, sym=True, stochastic=True, seed=None
         x_int = x_floor + torch.bernoulli(rest)  # Use random rounding based on the fractional part
     else:
         # Apply standard rounding
-        x_int = torch.round(x * scaling_factor)
+        x_int = torch.floor(x * scaling_factor)
 
     # Clamp the quantized values to the valid range - signed
     # x_quant = torch.clamp(x_int + b, 0, n_levels - 1)
@@ -1079,58 +1079,26 @@ class OurTrainer(Trainer):
 
             fp_perturb = torch.normal(mean=0, std=1, size=param.data.size(), device=param.data.device, dtype=param.data.dtype)
 
-            fp_memory = fp_perturb.numel() * fp_perturb.element_size()
-            max_memory_fp = max(max_memory_fp, fp_memory)
+            # fp_memory = fp_perturb.numel() * fp_perturb.element_size()
+            # max_memory_fp = max(max_memory_fp, fp_memory)
 
 
             if self.args.quantized_perturb_ours == True:
                 quantized_perturb, s, z = zo_quant(fp_perturb,nbits=self.args.perturb_bits,seed=random_seed+4,stochastic=True)
-                # Memory for quantized perturbation
-
-                # nbits = self.args.perturb_bits
-                # if nbits == 8:
-                #     quantized_memory_bytes = quantized_perturb.numel() * (nbits // 8)
-                # if nbits == 4:
-                #     quantized_memory_bytes = quantized_perturb.numel() /2
-                # max_memory_quantized = max(max_memory_quantized, quantized_memory_bytes)
-                mask = torch.rand_like(quantized_perturb) >= (90 / 100)
-                quantized_perturb = quantized_perturb *mask 
-                # # Sparse memory (mask + quantized non-zero elements)
-                # non_zero_elements = mask.sum().item()
-                # sparse_memory = (mask.numel() * mask.element_size()) + (non_zero_elements * (nbits // 8))
-                # max_memory_sparse = max(max_memory_sparse, sparse_memory)
+                # mask = torch.rand_like(quantized_perturb) >= (90 / 100)
+                # quantized_perturb = quantized_perturb *mask 
                 dequantized_perturb = zo_dequant(quantized_perturb,s ,z) 
 
             else:
                 quantized_perturb, s, z = zo_quant(fp_perturb,nbits=self.args.perturb_bits,stochastic=True)
-                # Memory for quantized perturbation
-                # nbits = self.args.perturb_bits
-                # if nbits == 8:
-                #     quantized_memory_bytes = quantized_perturb.numel() * (nbits // 8)
-                # if nbits == 4:
-                #     quantized_memory_bytes = quantized_perturb.numel() /2
-                # max_memory_quantized = max(max_memory_quantized, quantized_memory_bytes)
-                mask = torch.rand_like(quantized_perturb) >= (90 / 100)
-                quantized_perturb = quantized_perturb *mask 
-                # # Sparse memory (mask + quantized non-zero elements)
-                # non_zero_elements = mask.sum().item()
-                # sparse_memory = (mask.numel() * mask.element_size()) + (non_zero_elements * (nbits // 8))
-                # max_memory_sparse = max(max_memory_sparse, sparse_memory)
+                # mask = torch.rand_like(quantized_perturb) >= (90 / 100)
+                # quantized_perturb = quantized_perturb *mask 
+  
                 dequantized_perturb = zo_dequant(quantized_perturb,s ,z) 
 
             param.data = param.data + scaling_factor * dequantized_perturb * self.args.zo_eps
 
             random_seed += 2
-        # 转换为MB并记录最大内存消耗
-        # max_memory_fp_mb = max_memory_fp / (1024 ** 2)
-        # max_memory_quantized_mb = max_memory_quantized / (1024 ** 2)
-        # max_memory_sparse_mb = max_memory_sparse / (1024 ** 2)
-
-        # self.log({
-        #     "max_memory/fp_perturbation_mb": max_memory_fp_mb,
-        #     "max_memory/quantized_perturbation_mb": max_memory_quantized_mb,
-        #     "max_memory/sparse_perturbation_mb": max_memory_sparse_mb,
-        # })
 
 
 
@@ -1156,28 +1124,18 @@ class OurTrainer(Trainer):
             
             if self.args.quantized_perturb_ours == True:
                 quantized_perturb, s, z = zo_quant(fp_perturb,nbits=self.args.perturb_bits,seed=random_seed+4,stochastic=True)
-                mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
-                quantized_perturb = quantized_perturb * mask
+                # mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
+                # quantized_perturb = quantized_perturb * mask
                 dequantized_perturb = zo_dequant(quantized_perturb,s ,z) 
             else:
-                quantized_perturb, s, z = zo_quant(fp_perturb,nbits=self.args.perturb_bits,stochastic=True)
-                mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
-                quantized_perturb = quantized_perturb * mask
+                quantized_perturb, s, z = zo_quant(fp_perturb,nbits=self.args.perturb_bits,stochastic=False)
+                # mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
+                # quantized_perturb = quantized_perturb * mask
                 dequantized_perturb = zo_dequant(quantized_perturb,s ,z) 
             
             param.data = param.data + scaling_factor * dequantized_perturb * self.args.zo_eps
 
             random_seed += 2
-        # 转换为MB并记录最大内存消耗
-        # max_memory_fp_mb = max_memory_fp / (1024 ** 1)
-        # max_memory_quantized_mb = max_memory_quantized / (1024 ** 1)
-        # max_memory_sparse_mb = max_memory_sparse / (1024 ** 1)
-
-        # self.log({
-        #     "max_memory/fp_perturbation_kb": max_memory_fp_mb,
-        #     "max_memory/quantized_perturbation_kb": max_memory_quantized_mb,
-        #     "max_memory/sparse_perturbation_kb": max_memory_sparse_mb,
-        # })
 
 
          
@@ -1345,23 +1303,6 @@ class OurTrainer(Trainer):
             quantized_grad = torch.clamp(quantized_grad, -127, 127)
             self.projected_grad = quantized_grad * s
             projected_grad_list.append(self.projected_grad)
-            # self.projected_grad, scale, zero = zo_quant(self.projected_grad ,nbits=4,stochastic=False,sym=True)
-            # self.projected_grad = zo_dequant(self.projected_grad,scale, zero).item()
-
-
-            # No gradient accumulation support
-            # assert self.args.gradient_accumulation_steps == 1
-
-            # # Append gradient estimate for variance tracking
-            # if not hasattr(self, "gradient_estimates"):
-            #     self.gradient_estimates = []  # Initialize gradient list
-
-            # self.gradient_estimates.append(self.projected_grad)
-
-            # # Compute and log gradient variance every 10 steps
-            # if len(self.gradient_estimates) % 10 == 0:
-            #     grad_variance = compute_gradient_variance(self.gradient_estimates)
-            #     self.log({"gradient_variance/lowbit": grad_variance.item()})
 
             # Reset model back to its parameters at start of step
             self.zo_lowbitperturb_parameters(scaling_factor=1)
@@ -1468,21 +1409,42 @@ class OurTrainer(Trainer):
 
                 if self.args.quantized_perturb_ours == True:
                     quantized_perturb, s1, z1 = zo_quant(fp_perturb, nbits=self.args.perturb_bits, seed=zo_random_seed_update+4, stochastic=True)
-                    mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
-                    quantized_perturb = quantized_perturb * mask
+                    # mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
+                    # quantized_perturb = quantized_perturb * mask
                     z = zo_dequant(quantized_perturb, s1, z1) 
                 else:
                     quantized_perturb, s1, z1 = zo_quant(fp_perturb, nbits=self.args.perturb_bits, stochastic=False)
-                    mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
-                    quantized_perturb = quantized_perturb * mask
+                    # mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
+                    # quantized_perturb = quantized_perturb * mask
                     z = zo_dequant(quantized_perturb, s1, z1) 
 
-                if "bias" not in name and "layer_norm" not in name and "layernorm" not in name:
-                    param.data = param.data - self._get_learning_rate() * (projected_grad * z + args.weight_decay * param.data)
-                else:
-                    param.data = param.data - self._get_learning_rate() * (projected_grad * z)
+                # if "bias" not in name and "layer_norm" not in name and "layernorm" not in name:
+                #     param.data = param.data - self._get_learning_rate() * (projected_grad * z + args.weight_decay * param.data)
+                # else:
+                #     param.data = param.data - self._get_learning_rate() * (projected_grad * z)
+                # zo_random_seed_update += 2
+                if self.args.quantized_perturb_ours == True:
+                    if "bias" not in name and "layer_norm" not in name and "layernorm" not in name:
+                        param.data = param.data - self._get_learning_rate() * (projected_grad * z + args.weight_decay * param.data)
+                        quantized_data, scaling, zero = zo_quant_data(param.data,nbits=self.args.wbit,stochastic=True, sym=True)
+                        param.data = zo_dequant(quantized_data,scaling ,zero)    
+                    else:
+                            param.data = param.data - self._get_learning_rate() * projected_grad * z
+                            quantized_data, scaling, zero = zo_quant_data(param.data,nbits=self.args.wbit,stochastic=True, sym=True)
+                            param.data = zo_dequant(quantized_data,scaling ,zero)    
+                else:       
+                        if "bias" not in name and "layer_norm" not in name and "layernorm" not in name:
+                            max_bit = max(self.args.wbit,self.args.perturb_bits)
+                            zo_grad1 = self._get_learning_rate() * (projected_grad * z + args.weight_decay * param.data)
+                            param.data = param.data - zo_grad1
+                            quantized_data, scaling, zero = zo_quant_data(param.data,nbits=max_bit,stochastic=False, sym=True)
+                            param.data = zo_dequant(quantized_data,scaling ,zero)  
+
+                        else:
+                            param.data = param.data - self._get_learning_rate() * projected_grad * z
+                            quantized_data, scaling, zero = zo_quant_data(param.data,nbits=self.args.wbit,stochastic=False, sym=True)
+                            param.data = zo_dequant(quantized_data,scaling ,zero)     
                 zo_random_seed_update += 2
-        
         self.lr_scheduler.step()
 
     
@@ -1503,13 +1465,13 @@ class OurTrainer(Trainer):
 
             if self.args.quantized_perturb_ours == True:
                 quantized_perturb, s1, z1 = zo_quant(fp_perturb, nbits=self.args.perturb_bits, seed=zo_random_seed_update+4, stochastic=True)
-                mask = torch.rand_like(quantized_perturb) >= (90 / 100)
-                quantized_perturb = quantized_perturb * mask
+                # mask = torch.rand_like(quantized_perturb) >= (90 / 100)
+                # quantized_perturb = quantized_perturb * mask
                 z = zo_dequant(quantized_perturb, s1, z1) 
             else:
                 quantized_perturb, s1, z1 = zo_quant(fp_perturb, nbits=self.args.perturb_bits, stochastic=True)
-                mask = torch.rand_like(quantized_perturb) >= (90 / 100)
-                quantized_perturb = quantized_perturb * mask
+                # mask = torch.rand_like(quantized_perturb) >= (90 / 100)
+                # quantized_perturb = quantized_perturb * mask
                 z = zo_dequant(quantized_perturb, s1, z1) 
 
 
@@ -1535,9 +1497,9 @@ class OurTrainer(Trainer):
             if "bias" not in name and "layer_norm" not in name and "layernorm" not in name:
  
 
-                param.data = param.data - self._get_learning_rate() * (projected_grad * z + args.weight_decay * param.data)
+                param.data = param.data - self._get_learning_rate() * (self.projected_grad * z + args.weight_decay * param.data)
             else:
-                param.data = param.data - self._get_learning_rate() * (projected_grad * z)
+                param.data = param.data - self._get_learning_rate() * (self.projected_grad * z)
             zo_random_seed_update += 2
         self.lr_scheduler.step()
     ############## Misc overload functions ##############

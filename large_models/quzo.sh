@@ -12,8 +12,8 @@ EVAL=${EVAL:-1000}
 STEPS=${STEPS:-20000}
 EVAL_STEPS=${EVAL_STEPS:-6000}
 SAVE_STEPS=${SAVE_STEPS:-$EVAL_STEPS}
-MASK_RATIO=${MASK_RATIO:-50}  # Default mask ratio of 50%
-NUM_PERTUB=${NUM_PERTUB:-3}
+MASK_RATIO=${MASK_RATIO:-0}  # Default mask ratio of 50%
+NUM_PERTUB=${NUM_PERTUB:-1}
 TRAINER=${TRAINER:-zo}
 OPTIM=${OPTIM:-sgd}
 GRAD_ACC=${GRAD_ACC:-1}
@@ -113,13 +113,14 @@ echo "WBIT: $WBIT"
 echo "PBIT: $PBIT"
 echo "QUANT: $QUANT"
 echo "TWO: $TWO"
-
+echo "TRAINER: $TRAINER"
+echo "MASK_RATIO: $MASK_RATIO"
 
 
 
 WANDB_PROJECT=${WANDB_PROJECT:-LLM_QAT_Perturb}
 
-WANDB_PROJECT=$WANDB_PROJECT python run_mezo.py \
+WANDB_PROJECT=$WANDB_PROJECT python run.py \
     --model_name $MODEL \
     --task_name $TASK \
     --output_dir $LOG_HOME/$RUN_NAME --run_name $RUN_NAME --train_set_seed $SEED --num_train $TRAIN --num_dev $DEV --num_eval $EVAL --logging_steps 10 \
@@ -128,7 +129,12 @@ WANDB_PROJECT=$WANDB_PROJECT python run_mezo.py \
     --learning_rate $LR --zo_eps $EPS --per_device_train_batch_size $BS --lr_scheduler_type "linear" \
     --evaluation_strategy steps --save_strategy steps\
     --eval_steps $EVAL_STEPS --save_steps $SAVE_STEPS --save_total_limit 1 --do_eval False \
+    --quantized_perturb_ours $TWO \
     --train_as_classification \
+    --perturb_bits $PBIT \
+    --tuning_type $TYPE \
+    --mask_ratio $MASK_RATIO \
+    --num_pertub $NUM_PERTUB \
     $QUANT_ARGS \
     $EXTRA_ARGS \
     $TASK_ARGS \
