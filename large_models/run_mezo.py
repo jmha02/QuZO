@@ -27,6 +27,8 @@ import random
 from transformers import BitsAndBytesConfig
 
 import torch.profiler
+# Import STE utilities
+from ste_utils import add_ste_hooks, convert_model_to_ste_quantized, apply_ste_quantization
 
 def profile_memory_usage(model, device="cuda"):
     """
@@ -48,49 +50,37 @@ def pre_backward_hook(module, grad_input):
                 # print(f"Grad Input Before Modification: {grad_input}")
     
                 # Example: Modify the gradients (scaling by 0.5)
-                modified_grad = tuple(stochastic_quantize(g,bit_width=4) if g is not None else None for g in grad_input)
+                modified_grad = tuple(deterministic_quantize(g,bit_width=4) if g is not None else None for g in grad_input)
                 
                 # print(f"Grad Input After Modification: {modified_grad}")
                 return modified_grad  # Must return a modified gradient
-def stochastic_quantize(tensor, bit_width=8):
+def deterministic_quantize(tensor, bit_width=8):
     """
-    Stochastically quantize a tensor into a given bit-width.
-    
+    Deterministically quantize a tensor to a given bit-width using symmetric linear quantization.
+
     Args:
         tensor (torch.Tensor): Input tensor to quantize.
-        bit_width (int): Number of bits for quantization.
-    
+        bit_width (int): Number of bits for quantization (default: 8).
+
     Returns:
-        quantized_tensor (torch.Tensor): Stochastically quantized tensor.
-        dequantized_tensor (torch.Tensor): Dequantized tensor.
+        quantized_tensor (torch.Tensor): Quantized integer tensor.
+        dequantized_tensor (torch.Tensor): Dequantized float tensor.
     """
-    # Compute scaling factor
-    max_abs_value = torch.max(torch.abs(tensor))
-    scale = max_abs_value / (2**(bit_width - 1) - 1)  # Signed quantization
+    qmin = -(2 ** (bit_width - 1))
+    qmax = (2 ** (bit_width - 1)) - 1
 
-    # Avoid division by zero
-    if scale == 0:
-        scale = 1e-6
+    max_abs = torch.max(torch.abs(tensor))
+    scale = max_abs / qmax if max_abs > 0 else 1e-6
 
-    # Normalize tensor to quantization range
-    normalized_tensor = tensor / scale
+    # Normalize and quantize
+    normalized = tensor / scale
+    quantized = torch.round(normalized)
+    quantized = torch.clamp(quantized, qmin, qmax)
 
-    # # Compute stochastic rounding
-    # lower = torch.floor(normalized_tensor)  # Floor value
-    # fractional = normalized_tensor - lower  # Fractional part
-    # stochastic = torch.bernoulli(fractional)  # Bernoulli(p=fractional)
+    # Dequantize back to float
+    dequantized = quantized * scale
 
-    # # Quantize with stochastic rounding
-    # quantized_tensor = lower + stochastic
-    quantized_tensor = torch.round(normalized_tensor)
-
-    # Clamp to valid range
-    quantized_tensor = torch.clamp(quantized_tensor, -(2**(bit_width - 1)), 2**(bit_width - 1) - 1)
-
-    # Dequantize back to FP32
-    dequantized_tensor = quantized_tensor * scale
-
-    return dequantized_tensor
+    return dequantized
 
 
 @dataclass
@@ -174,7 +164,14 @@ class OurArguments(TrainingArguments):
 
     # Auto saving when interrupted
     save_on_interrupt: bool = False # save model when interrupted (useful for long training)
+    wbit: int = 8
 
+    # STE quantization
+    use_ste: bool = False  # whether to use STE quantization
+    ste_weight_bits: int = 8  # Number of bits for weight quantization with STE
+    ste_activation_bits: int = 8  # Number of bits for activation quantization with STE
+    ste_grad_bits: int = 8  # Number of bits for gradient quantization with STE
+    ste_mode: str = "hook"  # Mode for STE quantization: "hook" or "layer"
 
 def parse_args():
     parser = argparse.ArgumentParser()
@@ -267,6 +264,25 @@ class Framework:
                         trust_remote_code=True,
                     )
             model.eval()
+
+            # Apply STE if specified
+            if self.args.use_ste:
+                logger.info(f"Applying STE quantization with {self.args.ste_weight_bits}-bit weights and {self.args.ste_activation_bits}-bit activations")
+                if self.args.ste_mode == "hook":
+                    # Apply STE via backward hooks (quantize only gradients)
+                    add_ste_hooks(model, bits=self.args.ste_grad_bits)
+                    logger.info(f"Added STE gradient hooks (quantizing gradients to {self.args.ste_grad_bits} bits)")
+                elif self.args.ste_mode == "layer":
+                    # Replace linear layers with STE quantized layers
+                    model = convert_model_to_ste_quantized(
+                        model, 
+                        w_bits=self.args.ste_weight_bits, 
+                        a_bits=self.args.ste_activation_bits
+                    )
+                    logger.info("Converted model to use STE quantized linear layers")
+                else:
+                    logger.warning(f"Unknown STE mode: {self.args.ste_mode}, using hooks by default")
+                    add_ste_hooks(model, bits=self.args.ste_grad_bits)
 
         # Load tokenizer
         tokenizer = AutoTokenizer.from_pretrained(self.args.model_name, use_fast=False, use_auth_token="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")
@@ -566,6 +582,26 @@ class Framework:
         if self.args.resume_from_checkpoint is not None:
             last_checkpoint = self.args.resume_from_checkpoint
 
+        # Add STE gradient quantization during backward pass if enabled
+        if self.args.use_ste and self.args.trainer == "regular":
+            logger.info(f"Using STE with {self.args.ste_weight_bits}-bit weights and {self.args.ste_activation_bits}-bit activations")
+            
+            # Define STE backward hook if not already applied in load_model
+            if self.args.ste_mode not in ["hook", "layer"]:
+                def ste_backward_hook(module, grad_input):
+                    return tuple(
+                        apply_ste_quantization(g, self.args.ste_grad_bits) if g is not None else None 
+                        for g in grad_input
+                    )
+                
+                # Register hooks for gradient quantization
+                hooks = []
+                for name, module in self.model.named_modules():
+                    if isinstance(module, torch.nn.Linear):
+                        hook = module.register_full_backward_pre_hook(ste_backward_hook)
+                        hooks.append(hook)
+                logger.info(f"Registered STE backward hooks on {len(hooks)} modules")
+        
         trainer.train(resume_from_checkpoint=last_checkpoint) 
 
         # Explicitly save the model

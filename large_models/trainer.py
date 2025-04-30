@@ -385,6 +385,18 @@ def zo_dequant(x_quant, scaling_factor, zero_point):
     
     return qx  # Return the quantized and dequantized tensor
 
+@contextlib.contextmanager
+def maybe_no_sync(model):
+    """
+    Context manager to handle models with or without no_sync method (used in distributed training)
+    """
+    if hasattr(model, "no_sync") and callable(model.no_sync):
+        with model.no_sync():
+            yield
+    else:
+        # Fallback for models without no_sync
+        yield
+
 class OurTrainer(Trainer):
 
     from transformers.trainer_pt_utils import _get_learning_rate, log_metrics, metrics_format, save_metrics, save_state
@@ -711,7 +723,7 @@ class OurTrainer(Trainer):
                         and args._no_sync_in_gradient_accumulation
                     ):
                         # Avoid unnecessary DDP synchronization since there will be no backward pass on this example.
-                        with model.no_sync():
+                        with maybe_no_sync(model):
                             tr_loss_step = self.training_step(model, inputs)
                     else:
                         tr_loss_step = self.training_step(model, inputs)

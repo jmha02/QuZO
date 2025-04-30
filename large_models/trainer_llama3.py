@@ -213,7 +213,66 @@ def quantize_weight_per_channel_absmax(w, n_bits=8):
 
 import torch
 
+def stochastic_quantize(tensor, bit_width=8):
+    """
+    Stochastically quantize a tensor into a given bit-width.
+    
+    Args:
+        tensor (torch.Tensor): Input tensor to quantize.
+        bit_width (int): Number of bits for quantization.
+    
+    Returns:
+        quantized_tensor (torch.Tensor): Stochastically quantized tensor.
+        dequantized_tensor (torch.Tensor): Dequantized tensor.
+    """
+    # Compute scaling factor
+    max_abs_value = torch.max(torch.abs(tensor))
+    scale = max_abs_value / (2**(bit_width - 1) - 1)  # Signed quantization
 
+    # Avoid division by zero
+    if scale == 0:
+        scale = 1e-6
+
+    # Normalize tensor to quantization range
+    normalized_tensor = tensor / scale
+
+    # # Compute stochastic rounding
+    # lower = torch.floor(normalized_tensor)  # Floor value
+    # fractional = normalized_tensor - lower  # Fractional part
+    # stochastic = torch.bernoulli(fractional)  # Bernoulli(p=fractional)
+
+    # # Quantize with stochastic rounding
+    # quantized_tensor = lower + stochastic
+    quantized_tensor = torch.round(normalized_tensor)
+
+    # Clamp to valid range
+    quantized_tensor = torch.clamp(quantized_tensor, -(2**(bit_width - 1)), 2**(bit_width - 1) - 1)
+
+    # Dequantize back to FP32
+    dequantized_tensor = quantized_tensor * scale
+
+    return dequantized_tensor
+    
+def quantize_gradients(parameters, bits=8):
+    """
+    Quantize gradients to a specified number of bits using symmetric linear quantization.
+    """
+    qmin = -(2 ** (bits - 1))
+    qmax = (2 ** (bits - 1)) - 1
+
+    for param in parameters:
+        if param.grad is not None:
+            grad = param.grad.data
+            max_abs = torch.max(torch.abs(grad))
+            scale = max_abs / qmax if max_abs > 0 else 1e-6  # avoid div-by-zero
+
+            # Normalize, quantize, clamp
+            normalized = grad / scale
+            quantized = torch.round(normalized)
+            quantized = torch.clamp(quantized, qmin, qmax)
+
+            # Dequantize
+            param.grad.data = quantized * scale
 
 
 def zo_quant_data(x, nbits=16,blk_exp=True, sym=True, stochastic=True, seed=None):
@@ -386,6 +445,19 @@ def compute_gradient_variance(gradient_list):
     mean_grad = gradients.mean()
     variance = ((gradients - mean_grad) ** 2).mean()
     return variance
+
+# Add this context manager near the top of the file, after imports but before the class definitions
+@contextlib.contextmanager
+def maybe_no_sync(model):
+    """
+    Context manager to handle models with or without no_sync method (used in distributed training)
+    """
+    if hasattr(model, "no_sync") and callable(model.no_sync):
+        with model.no_sync():
+            yield
+    else:
+        # Fallback for models without no_sync
+        yield
 
 class OurTrainer(Trainer):
 
@@ -722,7 +794,7 @@ class OurTrainer(Trainer):
                         and args._no_sync_in_gradient_accumulation
                     ):
                         # Avoid unnecessary DDP synchronization since there will be no backward pass on this example.
-                        with model.no_sync():
+                        with maybe_no_sync(model):
                             tr_loss_step = self.training_step(model, inputs)
                     else:
                         tr_loss_step = self.training_step(model, inputs)
@@ -784,7 +856,9 @@ class OurTrainer(Trainer):
                                     grad_norm = grad_norm.item()
                             else:
                                 grad_norm = _grad_norm
-
+                        # print("Computing STE gradient error with bits=", 4)
+                        quantize_gradients(model.parameters(), bits=4)  # 使用模型的wbit参数
+                            
                         # Optimizer step
                         self.optimizer.step()
                         optimizer_was_run = not self.accelerator.optimizer_step_was_skipped
