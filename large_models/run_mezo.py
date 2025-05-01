@@ -50,7 +50,7 @@ def pre_backward_hook(module, grad_input):
                 # print(f"Grad Input Before Modification: {grad_input}")
     
                 # Example: Modify the gradients (scaling by 0.5)
-                modified_grad = tuple(deterministic_quantize(g,bit_width=4) if g is not None else None for g in grad_input)
+                modified_grad = tuple(deterministic_quantize(g,bit_width=8) if g is not None else None for g in grad_input)
                 
                 # print(f"Grad Input After Modification: {modified_grad}")
                 return modified_grad  # Must return a modified gradient

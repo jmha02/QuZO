@@ -7,10 +7,10 @@ cd /home/thomasjjc/project/QuZO/large_models
 
 # Common variables
 MODEL=meta-llama/Meta-Llama-3-8B
-WBIT=4
+WBIT=8
 ABIT=8
 GBIT=8
-TAG=INT4model-STE-QAT-LoRA
+TAG=INT8model-STE-QAT-LoRA
 
 # Function to evaluate a single task
 evaluate_task() {
@@ -37,7 +37,8 @@ evaluate_task() {
         --num_train 1 \
         --num_eval 1000 \
         --train_set_seed 0 \
-        --load_int4 true \
+        --load_int4 false \
+        --load_int8 true \
         --lora \
         --lora_alpha 16 \
         --lora_r 8 \
@@ -55,10 +56,10 @@ echo "Starting evaluation of all STE tasks..."
 # evaluate_task "ReCoRD" 2 "1e-5"
 
 # # Evaluate SQuAD
-evaluate_task "SQuAD" 2 "3e-5"
+# evaluate_task "SQuAD" 2 "3e-5"
 
 # # Evaluate DROP
-# evaluate_task "DROP" 1 "1e-5"
+evaluate_task "DROP" 1 "1e-5"
 
 # # Evaluate MultiRC
 # evaluate_task "MultiRC" 2 "5e-5"

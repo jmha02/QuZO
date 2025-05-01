@@ -790,66 +790,9 @@ class OurTrainer(Trainer):
                                 )
 
 
-                        # grad_memory = sum(param.grad.element_size() * param.grad.nelement() for param in model.parameters() if param.grad is not None)
-                        # grad_memory_gb = grad_memory / (1024 ** 3)  # Convert bytes to GB
-                        # print(f"Gradient Memory After Backward Pass: {grad_memory} Bytes({grad_memory_gb:.3f} GB)")
-                            # Quantize gradients
-                        # if hasattr(model, "parameters"):
-                        #     # print("fo gradient quantization")
-                        #     quantize_data(model.parameters(), bits=8)  # Adjust bits as necessary
-                        #     # quant_data(model.parameters(), nbits=8)
-                        #     quant_grad(model.parameters(), nbits=8)  # Adjust bits as necessary
-                        # 在梯度量化前分析STE的误差
-                      # 在gradient clipping和optimizer step之间添加这段代码
-
-                        # if hasattr(model, "parameters"):
-                            # try:
-                            #     # 1. 收集原始梯度
-                            #     original_grads = {}
-                            #     for name, param in model.named_parameters():
-                            #         if param.requires_grad and param.grad is not None:
-                            #             original_grads[name] = param.grad.clone()
+                   
                                 
-                            #     # 2. 执行梯度量化(4-bit)
-                            #     bits_to_analyze = 2  # 4-bit量化分析
-                                
-                            #     # 创建参数副本进行量化分析
-                            #     params_copy = []
-                            #     param_names = []
-                                
-                            #     for name, param in model.named_parameters():
-                            #         if param.requires_grad and param.grad is not None:
-                            #             param_copy = param.clone()
-                            #             param_copy.grad = param.grad.clone()
-                            #             params_copy.append(param_copy)
-                            #             param_names.append(name)
-                                
-                            #     # 在副本上执行量化
-                            #     quantize_gradients(params_copy, bits=bits_to_analyze)
-                                
-                            #     # 3. 计算MSE误差
-                            #     total_mse = 0.0
-                            #     count = 0
-                                
-                            #     for i, name in enumerate(param_names):
-                            #         if name in original_grads:
-                            #             # 获取原始和量化后的梯度
-                            #             orig_grad = original_grads[name]
-                            #             quant_grad = params_copy[i].grad
-                                        
-                            #             # 计算MSE
-                            #             mse = torch.mean(orig_grad - quant_grad).item()
-                            #             total_mse += mse
-                            #             count += 1
-                                
-                            #     # 4. 计算并记录平均MSE
-                            #     if count > 0:
-                            #         avg_mse = total_mse / count
-                            #         self.log({"ste_total/avg_mse": avg_mse, "ste_total/bits": bits_to_analyze})
-                            #         print(f"STE analysis: {bits_to_analyze}-bit quantization, Avg MSE={avg_mse:.6f}")
-                                
-                            # except Exception as e:
-                            #     print(f"Error in STE MSE analysis: {str(e)}")
+                       
                         # Optimizer step
                         optimizer_was_run = True
                         if self.deepspeed:
