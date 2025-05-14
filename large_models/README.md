@@ -22,6 +22,7 @@ accelerate==0.26.0
 # Quantization CUDA kernel
 ```
 gcc < 11
+conda install -c conda-forge gcc=10 gxx=10
 pip install ./quant
 ```
 

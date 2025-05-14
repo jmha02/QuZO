@@ -328,7 +328,7 @@ class Framework:
             "Loading model with FP%d" % (16 if self.args.load_float16 else 32)
         ):
             free_in_GB = int(torch.cuda.mem_get_info()[0] / 1024**3)
-            config = AutoConfig.from_pretrained(self.args.model_name,use_auth_token="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")
+            config = AutoConfig.from_pretrained(self.args.model_name)
             if self.args.untie_emb:
                 # Untie embeddings/LM head
                 logger.warn("Untie embeddings and LM head")
@@ -377,7 +377,7 @@ class Framework:
                         },
                         load_in_8bit=self.args.load_int8,
                         trust_remote_code=True,
-                        use_auth_token="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"
+                        # use_auth_token="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"
                     )
                     print(model)
 
@@ -385,7 +385,7 @@ class Framework:
 
 
         # Load tokenizer
-        tokenizer = AutoTokenizer.from_pretrained(self.args.model_name, use_fast=False, use_auth_token="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")
+        tokenizer = AutoTokenizer.from_pretrained(self.args.model_name, use_fast=False)
 
         # HF tokenizer bug fix
         if "opt" in self.args.model_name:

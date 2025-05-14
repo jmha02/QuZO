@@ -152,8 +152,8 @@ class CopaDataset(Dataset):
         local_path = os.path.join(os.environ["HF_HOME"], "datasets/local/copa")
         if not os.path.exists(local_path):
             logger.warning("Local data not found, calling load_dataset() directly might cause server to hang forever.")
-            train_examples = load_dataset('super_glue', "copa")["train"]
-            valid_examples = load_dataset('super_glue', "copa")["validation"]
+            train_examples = load_dataset('super_glue', "copa", trust_remote_code=True)["train"]
+            valid_examples = load_dataset('super_glue', "copa", trust_remote_code=True)["validation"]
             train_examples.save_to_disk(os.path.join(local_path, "train"))
             valid_examples.save_to_disk(os.path.join(local_path, "validation"))
             logger.info("COPA dataset saved to local")
@@ -227,7 +227,7 @@ class MultiRCDataset(Dataset):
         local_path = os.path.join(os.environ["HF_HOME"], "datasets/local/multirc")
         if not os.path.exists(local_path):
             logger.warning("Local data not found, calling load_dataset() directly might cause server to hang forever.")
-            d = load_dataset("super_glue", "multirc")
+            d = load_dataset("super_glue", "multirc", trust_remote_code=True)
                         # If tokenized
             # tokenized_dataset = d.map(lambda x: {"input_ids": x["text"].split()}, remove_columns=["text"])
 
@@ -340,7 +340,7 @@ class WSCDataset(Dataset):
         local_path = os.path.join(os.environ["HF_HOME"], "datasets/local/wsc")
         if not os.path.exists(local_path):
             logger.warning("Local data not found, calling load_dataset() directly might cause server to hang forever.")
-            d = load_dataset("super_glue", "wsc.fixed")
+            d = load_dataset("super_glue", "wsc.fixed", trust_remote_code=True)
             d.save_to_disk(local_path)
             logger.info("WSC dataset saved to local")
         else:
@@ -412,7 +412,7 @@ class RTEDataset(Dataset):
         local_path = os.path.join(os.environ["HF_HOME"], "datasets/local/rte")
         if not os.path.exists(local_path):
             logger.warning("Local data not found, calling load_dataset() directly might cause server to hang forever.")
-            d = load_dataset("super_glue", "rte")
+            d = load_dataset("super_glue", "rte", trust_remote_code=True)
             d.save_to_disk(local_path)
             logger.info("RTE dataset saved to local")
         else:

@@ -10,7 +10,7 @@ git clone https://github.com/yourusername/QuZO.git
 cd QuZO
 
 # Create and activate the conda environment
-conda env create -f quzo_environment.yml
+conda env create -f llm_quzo_environment.yml
 conda activate llm_quzo
 
 # Install the quantization CUDA kernel
@@ -27,10 +27,11 @@ conda activate llm_quzo
 
 # Install PyTorch and CUDA
 conda install pytorch==2.1.1 torchvision==0.16.1 torchaudio==2.1.1 pytorch-cuda=12.1 -c pytorch -c nvidia
+pip install torch==2.6.0 torchvision==0.21.0 torchaudio==2.6.0 --index-url https://download.pytorch.org/whl/cu124
 
 # Install dependencies
-pip install transformers==4.31.0 accelerate==0.26.0 sentencepiece bitsandbytes==0.41.1 peft==0.13.0
-pip install wandb datasets numpy<2.0.0 scikit-learn scipy tqdm
+pip install transformers==4.31.0 accelerate==0.26.0 sentencepiece bitsandbytes==0.45.0 peft==0.14.0
+pip install wandb datasets numpy==1.24.4 scikit-learn scipy tqdm
 
 # Install quantization CUDA kernel
 cd large_models

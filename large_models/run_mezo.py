@@ -283,6 +283,7 @@ class Framework:
                 else:
                     logger.warning(f"Unknown STE mode: {self.args.ste_mode}, using hooks by default")
                     add_ste_hooks(model, bits=self.args.ste_grad_bits)
+                print(model)
 
         # Load tokenizer
         tokenizer = AutoTokenizer.from_pretrained(self.args.model_name, use_fast=False, use_auth_token="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")

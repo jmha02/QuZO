@@ -1,12 +1,13 @@
 #!/bin/bash
 # Script to evaluate all STE tasks from llama3_ste_exp_lora.sh
-export HF_HOME=/home/thomasjjc/resource_dir/huggingface
-export LOG_HOME=/home/thomasjjc/resource_dir/llm_quant
+export HF_HOME=/home/jjc/resource_dir/huggingface
+# export PATH=/home/thomasjjc/resource_dir/llm_quant/bin:$PATH
+export LOG_HOME=/home/jjc/resource_dir/llm_quant
 
-cd /home/thomasjjc/project/QuZO/large_models
+cd /home/jjc/project/QuZO/large_models
 
 # Common variables
-MODEL=meta-llama/Meta-Llama-3-8B
+MODEL=mistralai/Mistral-7B-Instruct-v0.3
 WBIT=8
 ABIT=8
 GBIT=8
@@ -24,7 +25,7 @@ evaluate_task() {
     CHECKPOINT_DIR=$LOG_HOME/$TAG-$TASK-Meta-Llama-3-8B-WBIT$WBIT-ABIT$ABIT
     
     # Evaluation command
-    CUDA_VISIBLE_DEVICES=0 python run_mezo.py \
+    CUDA_VISIBLE_DEVICES=4 python run_mezo.py \
         --model_name $MODEL \
         --task_name $TASK \
         --output_dir "${CHECKPOINT_DIR}_eval" \
@@ -53,15 +54,15 @@ evaluate_task() {
 echo "Starting evaluation of all STE tasks..."
 
 # Evaluate ReCoRD
-# evaluate_task "ReCoRD" 2 "1e-5"
+evaluate_task "ReCoRD" 2 "1e-5"
 
 # # Evaluate SQuAD
-# evaluate_task "SQuAD" 2 "3e-5"
+evaluate_task "SQuAD" 2 "3e-5"
 
 # # Evaluate DROP
-evaluate_task "DROP" 1 "1e-5"
+# evaluate_task "DROP" 1 "1e-5"
 
 # # Evaluate MultiRC
-# evaluate_task "MultiRC" 2 "5e-5"
+evaluate_task "MultiRC" 2 "5e-5"
 
 echo "All evaluations completed!" 

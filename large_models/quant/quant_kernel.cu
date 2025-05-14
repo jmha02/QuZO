@@ -48,7 +48,7 @@ std::tuple<torch::Tensor, torch::Tensor>  quant_forward_cuda(
     auto z   = torch::zeros_like(x);
     auto idx = torch::zeros_like(x);
 
-    AT_DISPATCH_FLOATING_TYPES(x.type(), "quant_forward_cuda", ([&] {
+    AT_DISPATCH_FLOATING_TYPES(x.scalar_type(), "quant_forward_cuda", ([&] {
         quant_forward_cuda_kernel<scalar_t><<<blocks, threads>>>(
             x.packed_accessor<scalar_t,1,torch::RestrictPtrTraits,size_t>(),
             y.packed_accessor<scalar_t,1,torch::RestrictPtrTraits,size_t>(),
