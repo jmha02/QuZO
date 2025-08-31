@@ -25,7 +25,7 @@ evaluate_task() {
     CHECKPOINT_DIR=$LOG_HOME/$TAG-$TASK-Meta-Llama-3-8B-WBIT$WBIT-ABIT$ABIT
     
     # Evaluation command
-    CUDA_VISIBLE_DEVICES=4 python run_mezo.py \
+    CUDA_VISIBLE_DEVICES=0 python run_mezo.py \
         --model_name $MODEL \
         --task_name $TASK \
         --output_dir "${CHECKPOINT_DIR}_eval" \

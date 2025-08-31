@@ -52,10 +52,10 @@ import random
 import sys
 import wandb, pdb
 
-sys.path.append("/home/thomasjjc/project/QuZO/large_models/quant_func")
+# sys.path.append("/home/thomasjjc/project/QuZO/large_models/quant_func")
 
-from quant_func.quant_model import *
-from quant_func.quant_utils import *
+# from quant_func.quant_model import *
+# from quant_func.quant_utils import *
 # from quant_func.smothquant_models import *
 # from quant_func.qllm_models import *
 
@@ -424,44 +424,7 @@ class Framework:
             print("LoRA!!!")
             model = get_peft_model(model, config)
         
-            # Register pre-hooks on all `nn.Linear` layers
-            # pdb.set_trace()
-            # print(model.named_modules())
-            # for name, module in model.named_modules():
-            #     print(f"Registering hook on: {name}") 
-
-            #     if isinstance(module, nn.Linear):  # Select only linear layers
-            #         print(f"Registering hook on: {name}")  # Debugging
-            #         module.register_full_backward_pre_hook(pre_backward_hook)
-            # layer_sensitivity = {}
-            # original_loss = self.forward(model, inputs)  # This is the baseline loss
-            # for name, param in model.named_parameters():
-            #     if param.requires_grad:
-            #         original_data = param.data.clone()
-            #         param.data.add_(torch.randn_like(param) * 1e-3)  # Apply a small perturbation
-            #         perturbed_loss = self.forward(model, inputs)  # Compute loss with perturbed layer
-            #         layer_sensitivity[name] = perturbed_loss - original_loss
-            #         param.data = original_data
-            # ranked_layers = sorted(layer_sensitivity.items(), key=lambda x: abs(x[1]), reverse=True)
-            # print("Ranked Layers by Sensitivity:")
-            # for i, (layer, sensitivity) in enumerate(ranked_layers, 1):
-            #     print(f"{i}. {layer}: {sensitivity}")
-            # k = 10
-            # top_layers = [layer[0] for layer in ranked_layers[:k]]
-            # for name, param in model.named_parameters():
-            #     if param.requires_grad and name not in top_layers:
-            #         param.requires_grad == False
-            # print("perturb",k,"layer")
-            # for param_name, param in model.named_parameters():
-            #             if 'lm_head' in param_name:
-            #                 param.requires_grad = True
-                        # if ('embed_tokens' or  'input_layernorm' or 'post_attention_layernorm' or 'lm_head')  in param_name:
-                        #     param.data = param.data.to(torch.float32)
-                        #     param.requires_grad = True
-                        # if 'layer_norm'  in param_name:
-                        #     param.requires_grad = True
-                        # if  'post_attention_layernorm'  in param_name:
-                        #     param.requires_grad = True
+           
         if self.args.tuning_type == 'loretta_rep':
             from loretta import LorettaRepConfig, get_peft_model
             config = LorettaRepConfig(
@@ -859,12 +822,11 @@ class Framework:
                        param.requires_grad = False
                     else:
                        param.requires_grad = True
-# # Register pre-hooks on all `nn.Linear` layers
-#         for module in self.model.modules():
-#                     if isinstance(module, nn.Linear):
-#                             print("gradient quant")
-
-#                             module.register_full_backward_pre_hook(pre_backward_hook)
+# Register pre-hooks on all `nn.Linear` layers
+        for module in self.model.modules():
+                    if isinstance(module, nn.Linear):
+                            print("gradient quant")
+                            module.register_full_backward_pre_hook(pre_backward_hook)
             
 
         print(self.model)

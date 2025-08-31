@@ -1,6 +1,24 @@
-# QuZO: Quantized Zero-Order Optimization for Large Language Models
+# Source Code for Paper:  
+**QuZO: Quantized Zeroth-Order Fine-Tuning for Large Language Models**  
+_Submitted to EMNLP 2025_  
 
-## Environment Setup
+**Jiajun Zhou, Yifan Yang, Kai Zhen, Ziyue Liu, Yequan Zhao,Ershad Banijamali, Athanasios Mouchtaris, Ngai Wong, Zheng Zhang**
+
+---
+
+QuZO introduces a **memory-efficient fine-tuning framework** for large language models (LLMs), leveraging **quantized zeroth-order (ZO) optimization** that eliminates gradient backpropagation and reduces memory footprint to near inference-level costs. Our approach enables **LLM adaptation on a single GPU**, even for models like LLaMA2-13B and OPT-30B, while maintaining competitive or superior accuracy compared to first-order and FP32-based ZO baselines (e.g., MeZO).
+
+Key features include:
+
+- **Memory Scalability:** Memory cost is bounded by the largest weight matrix instead of full model or activation footprint.
+- **Single-GPU Compatibility:** Supports training 13B–30B models on a single A100 40GB GPU.
+- **Efficient forward-only training:** Efficient per-step performance, supporting low-bit perturbations, sparse gradients, and adaptive query strategies.
+
+---
+
+##  Quickstart
+
+Install the QuZO library with:
 
 ### Using Conda
 You can easily set up the required environment using the provided YAML file:
@@ -38,53 +56,54 @@ cd large_models
 pip install ./quant
 ```
 
-# Quantized ZO Fine-Tuning Language Models 
+
+##To run:
+
+```bash
+cd /home/jjc/project/QuZO/large_models/script
+bash llama3_quzo_exp_lora.sh   
+```
+
+##Model support
+---
+QuZO has been tested on:
+
+- **LLaMA2/3**
+- **OPT (1.3B/6.7B)**
+- **Mistral (7B)**
+- **RoBERTa / DeBERTa for classification tasks**
+
+It supports common fine-tuning tasks including `CAUSAL_LM`, `SEQ_2_SEQ_LM`, and `SEQ_CLS`. Check our config docs for model-specific integration.
 
 
-QuZO is the first framework designed for efficient fine-tuning of quantized Large Language Models (LLMs) using low-bit stochastic perturbations and zeroth-order optimization (ZO). QuZO eliminates the need for backpropagation and achieves state-of-the-art performance in memory-constrained settings by leveraging inference-only engines for optimization.
+##Environment
+---
+Generally, the package is implemented based on `torch==2.1.2`, `python=3.10.13` and `transformers==4.38.2`. For a detailed
+list of environments we use, check `requirements.txt` or `environment.yml` files we provided.
 
-🚀 Key Features
+Examples of reproducing the results in the paper
+---
+We provide one detailed example to reproduce the experimental results in our paper, which are stored in folder  `large_models`. To reproduce our experiments, follow the instructions below:
 
-	•Quantized Fine-Tuning: Supports fine-tuning of 4-bit and 8-bit quantized LLMs, such as LLaMA-2 and OPT models.
-	•Forward-Pass Only Training: Eliminates backward passes and reduces memory overhead by up to 5.46× compared to first-order (FO) methods like QLoRA.
-	•Low-Bit Stochastic Perturbations: Employs quantized perturbations to estimate gradients efficiently.
-	•Parameter-Efficient Fine-Tuning (PEFT): Compatible with LoRA and similar methods, focusing updates on low-rank matrices to enhance hardware efficiency.
-	•Scalable and Flexible: Suitable for various model scales (from medium models like RoBERTa to large-scale LLaMA-2 models).
+- Create the environment with the provided file `requirements.txt` or `environment.yml`
+- setup the parameters in `run_all_bert_exp.sh` or `run_all_large_exp.sh` in each folder, which mainly contains:
+  - MODEL: the name of the huggingface-enabled model
+  - TASK: the name of the datasets, which support `MNLI, SST2, COLA, QQP, QNLI, RTE, MRPC, STSB` for bert tests and 
+  `SST2, RTE, CB, BoolQ, WSC, WIC, MultiRC, Copa, ReCoRD, SQuAD, DROP` for llama tests
+  - EPOCH/BS/LR: basic training argument for epochs, batch_size and learning_rate
+  - DEVICE: the number of CUDA devices you would like to use `export CUDA_VISIBLE_DEVICES=$DEVICE`
+  - For other arguments needed for the experiments, see `quzo.sh` for detail
 
-🛠 Installation
+Cite our paper
+---
+Note: The code is implemented based on an elder version of the [PEFT library](https://github.com/huggingface/peft/tree/main)
 
-Clone the repository and set up the environment following the large_models/medium_models folder
-
-
-
-🔧 Usage
-
-1. Fine-Tuning with QuZO
-
-To fine-tune a quantized model using QuZO, follow these steps in the large_models folder
-
-2. Evaluate the Model
-
-Evaluate the fine-tuned model:
-
-To reproduce RoBERTa-large experiments, please refer to the medium_models folder. For LLaMa-2 experiments, please take a look at the large_models folder. 
-
-📝 Framework Highlights
-
-• Mixed-Precision Training
-
-QuZO supports hybrid formats (e.g., FP8 activations with INT4 weights) to balance representation range and quantization errors.
-
-• Parameter Efficiency with LoRA
-
-QuZO integrates with LoRA, updating only the low-rank matrices ￼ and ￼ for fine-tuning, reducing trainable parameters significantly.
-
-
-
-
-
-
-
-
-
-
+To use Loretta in your publication, please cite it by using the following BibTeX entry.
+```angular2html
+@article{zhou2025quzo,
+  title={QuZO: Quantized zeroth-order fine-tuning for large language models},
+  author={Zhou, Jiajun and Yang, Yifan and Zhen, Kai and Liu, Ziyue and Zhao, Yequan and Banijamali, Ershad and Mouchtaris, Athanasios and Wong, Ngai and Zhang, Zheng},
+  journal={arXiv preprint arXiv:2502.12346},
+  year={2025}
+}
+```

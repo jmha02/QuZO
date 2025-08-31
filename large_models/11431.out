@@ -1,0 +1,469 @@
+Looking in indexes: https://pypi.org/simple, https://pypi.ngc.nvidia.com
+Requirement already satisfied: transformers==4.45.0 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (4.45.0)
+Requirement already satisfied: filelock in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (3.17.0)
+Requirement already satisfied: huggingface-hub<1.0,>=0.23.2 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (0.31.1)
+Requirement already satisfied: numpy>=1.17 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (2.3.2)
+Requirement already satisfied: packaging>=20.0 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (25.0)
+Requirement already satisfied: pyyaml>=5.1 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (6.0.2)
+Requirement already satisfied: regex!=2019.12.17 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (2024.11.6)
+Requirement already satisfied: requests in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (2.32.3)
+Requirement already satisfied: tokenizers<0.21,>=0.20 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (0.20.3)
+Requirement already satisfied: safetensors>=0.4.1 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (0.5.3)
+Requirement already satisfied: tqdm>=4.27 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from transformers==4.45.0) (4.67.1)
+Requirement already satisfied: fsspec>=2023.5.0 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from huggingface-hub<1.0,>=0.23.2->transformers==4.45.0) (2024.6.1)
+Requirement already satisfied: typing-extensions>=3.7.4.3 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from huggingface-hub<1.0,>=0.23.2->transformers==4.45.0) (4.12.2)
+Requirement already satisfied: hf-xet<2.0.0,>=1.1.0 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from huggingface-hub<1.0,>=0.23.2->transformers==4.45.0) (1.1.0)
+Requirement already satisfied: charset-normalizer<4,>=2 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from requests->transformers==4.45.0) (3.3.2)
+Requirement already satisfied: idna<4,>=2.5 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from requests->transformers==4.45.0) (3.7)
+Requirement already satisfied: urllib3<3,>=1.21.1 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from requests->transformers==4.45.0) (2.3.0)
+Requirement already satisfied: certifi>=2017.4.17 in /home/jjc/anaconda3/envs/llm_quzo/lib/python3.11/site-packages (from requests->transformers==4.45.0) (2025.4.26)
+QuZO-LPmodel-LoRA-Ours-SQuAD-Meta-Llama-3-8B-4-3e-5-TWOPERTURB-True-W8-Perturb4-Bits
+BS: 4
+LR: 3e-5
+EPS: 2e-3
+SEED: 0
+TRAIN/EVAL STEPS: 6000/6000
+SAVE STEPS: 6000
+MODE: lora
+Extra args:  --load_int8 True --train_as_classification False
+WBIT: 8
+PBIT: 4
+QUANT: True
+TWO: True
+TRAINER: zo_lowbit
+MASK_RATIO: 0
+OurArguments(
+_n_gpu=1,
+a_low=75,
+a_up=150,
+abit=8,
+accelerator_config={'split_batches': False, 'dispatch_batches': None, 'even_batches': True, 'use_seedable_sampler': True, 'non_blocking': False, 'gradient_accumulation_kwargs': None, 'use_configured_state': False},
+adafactor=False,
+adam_beta1=0.9,
+adam_beta2=0.999,
+adam_epsilon=1e-08,
+adapter_dropout=0.0,
+adp_bottleneck=64,
+auto_find_batch_size=False,
+batch_eval_metrics=False,
+bernperturb=False,
+bf16=False,
+bf16_full_eval=False,
+data_seed=None,
+dataloader_drop_last=False,
+dataloader_num_workers=0,
+dataloader_persistent_workers=False,
+dataloader_pin_memory=True,
+dataloader_prefetch_factor=None,
+ddp_backend=None,
+ddp_broadcast_buffers=None,
+ddp_bucket_cap_mb=None,
+ddp_find_unused_parameters=None,
+ddp_timeout=1800,
+debug=[],
+deepspeed=None,
+delayed_start=False,
+disable_input_quantization=False,
+disable_quant=False,
+disable_tqdm=False,
+dispatch_batches=None,
+distributed=False,
+do_eval=True,
+do_predict=False,
+do_train=False,
+eos_token=<EOS_TOKEN>,
+eval_accumulation_steps=None,
+eval_delay=0,
+eval_do_concat_batches=True,
+eval_on_start=False,
+eval_steps=6000,
+eval_strategy=IntervalStrategy.STEPS,
+eval_use_gather_object=False,
+evaluation_strategy=steps,
+fp16=False,
+fp16_backend=auto,
+fp16_full_eval=False,
+fp16_opt_level=O1,
+fp8_algo=direct,
+fp8_training=False,
+fsdp=[],
+fsdp_config={'min_num_params': 0, 'xla': False, 'xla_fsdp_v2': False, 'xla_fsdp_grad_ckpt': False},
+fsdp_min_num_params=0,
+fsdp_transformer_layer_cls_to_wrap=None,
+full_determinism=False,
+gradient_accumulation_steps=1,
+gradient_checkpointing=False,
+gradient_checkpointing_kwargs=None,
+greater_is_better=None,
+group_by_length=False,
+half_precision_backend=auto,
+head_tuning=False,
+hub_always_push=False,
+hub_model_id=None,
+hub_private_repo=False,
+hub_strategy=HubStrategy.EVERY_SAVE,
+hub_token=<HUB_TOKEN>,
+icl_sfc=False,
+ignore_data_skip=False,
+include_inputs_for_metrics=False,
+include_num_input_tokens_seen=False,
+include_tokens_per_second=False,
+jit_mode_eval=False,
+label_names=None,
+label_smoothing_factor=0.0,
+layer_8bit_l=base,
+layer_8bit_n=0,
+learning_rate=3e-05,
+length_column_name=length,
+linear_probing=False,
+load_best_model_at_end=False,
+load_bfloat16=False,
+load_float16=False,
+load_int4=False,
+load_int8=True,
+local_rank=0,
+local_server=False,
+local_world_size=-1,
+log_level=passive,
+log_level_replica=warning,
+log_on_each_node=True,
+logging_dir=/home/jjc/resource_dir/llm_quant/QuZO-LPmodel-LoRA-Ours-SQuAD-Meta-Llama-3-8B-4-3e-5-TWOPERTURB-True-W8-Perturb4-Bits/runs/Aug31_15-58-15_nwonga100,
+logging_first_step=False,
+logging_nan_inf_filter=True,
+logging_steps=10,
+logging_strategy=IntervalStrategy.STEPS,
+lora=False,
+lora_alpha=16,
+lora_r=8,
+lp_early_stopping=False,
+lr_scheduler_kwargs={},
+lr_scheduler_type=SchedulerType.LINEAR,
+mask_ratio=0,
+max_grad_norm=1.0,
+max_length=2048,
+max_new_tokens=50,
+max_steps=6000,
+metric_for_best_model=None,
+mode=int,
+model_name=meta-llama/Meta-Llama-3-8B,
+mp_parameters=,
+neftune_noise_alpha=None,
+no_auto_device=False,
+no_cuda=False,
+no_eval=False,
+no_outlier=False,
+no_reparam=True,
+non_diff=False,
+non_linearity=relu,
+num_beams=1,
+num_dev=500,
+num_eval=1000,
+num_pertub=1,
+num_pertub_max=15,
+num_prefix=5,
+num_train=1000,
+num_train_epochs=3.0,
+num_train_sets=None,
+only_train_option=True,
+optim=OptimizerNames.SGD,
+optim_args=None,
+optim_target_modules=None,
+output_dir=/home/jjc/resource_dir/llm_quant/QuZO-LPmodel-LoRA-Ours-SQuAD-Meta-Llama-3-8B-4-3e-5-TWOPERTURB-True-W8-Perturb4-Bits,
+overwrite_output_dir=False,
+past_index=-1,
+per_device_eval_batch_size=8,
+per_device_train_batch_size=4,
+percent=100,
+perturb_bits=4,
+prediction_loss_only=False,
+prefix_init_by_real_act=True,
+prefix_tuning=False,
+push_to_hub=False,
+push_to_hub_model_id=None,
+push_to_hub_organization=None,
+push_to_hub_token=<PUSH_TO_HUB_TOKEN>,
+qllm=False,
+quantize=True,
+quantize_batch_size=64,
+quantized_perturb_ours=True,
+rank=8,
+ray_scope=last,
+remove_unused_columns=True,
+rep_alpha=16,
+rep_bottleneck=16,
+report_to=['wandb'],
+restore_callback_states_from_checkpoint=False,
+result_file=None,
+resume_from_checkpoint=None,
+run_name=QuZO-LPmodel-LoRA-Ours-SQuAD-Meta-Llama-3-8B-4-3e-5-TWOPERTURB-True-W8-Perturb4-Bits,
+sampling=False,
+save_model=False,
+save_on_each_node=False,
+save_on_interrupt=False,
+save_only_model=False,
+save_safetensors=True,
+save_steps=6000,
+save_strategy=IntervalStrategy.STEPS,
+save_total_limit=1,
+scaling=1.0,
+search=False,
+seed=42,
+sfc=False,
+sigma=0,
+skip_memory_metrics=True,
+slurm=False,
+smooth=False,
+split_batches=None,
+tag=,
+target_modules=None,
+task_name=SQuAD,
+task_type=CAUSAL_LM,
+temperature=1.0,
+tensor_rank=8,
+tf32=None,
+top_k=None,
+top_p=0.95,
+torch_compile=False,
+torch_compile_backend=None,
+torch_compile_mode=None,
+torch_empty_cache_steps=None,
+torchdynamo=None,
+tpu_metrics_debug=False,
+tpu_num_cores=None,
+train_as_classification=False,
+train_set_seed=0,
+trainer=zo_lowbit,
+tuning_type=lora,
+untie_emb=False,
+use_cpu=False,
+use_ipex=False,
+use_legacy_prediction_loop=False,
+use_liger_kernel=False,
+use_mps_device=False,
+verbose=False,
+w_low=75,
+w_up=150,
+wandb_project=LLM_QuZO_github,
+warmup_ratio=0.0,
+warmup_steps=0,
+wbit=8,
+weight_decay=0.0,
+zo_eps=0.002,
+)
+LlamaForCausalLM(
+  (model): LlamaModel(
+    (embed_tokens): Embedding(128256, 4096)
+    (layers): ModuleList(
+      (0-31): 32 x LlamaDecoderLayer(
+        (self_attn): LlamaSdpaAttention(
+          (q_proj): Linear8bitLt(in_features=4096, out_features=4096, bias=False)
+          (k_proj): Linear8bitLt(in_features=4096, out_features=1024, bias=False)
+          (v_proj): Linear8bitLt(in_features=4096, out_features=1024, bias=False)
+          (o_proj): Linear8bitLt(in_features=4096, out_features=4096, bias=False)
+          (rotary_emb): LlamaRotaryEmbedding()
+        )
+        (mlp): LlamaMLP(
+          (gate_proj): Linear8bitLt(in_features=4096, out_features=14336, bias=False)
+          (up_proj): Linear8bitLt(in_features=4096, out_features=14336, bias=False)
+          (down_proj): Linear8bitLt(in_features=14336, out_features=4096, bias=False)
+          (act_fn): SiLU()
+        )
+        (input_layernorm): LlamaRMSNorm((4096,), eps=1e-05)
+        (post_attention_layernorm): LlamaRMSNorm((4096,), eps=1e-05)
+      )
+    )
+    (norm): LlamaRMSNorm((4096,), eps=1e-05)
+    (rotary_emb): LlamaRotaryEmbedding()
+  )
+  (lm_head): Linear(in_features=4096, out_features=128256, bias=False)
+)
+LoRA!!!
+PeftModelForCausalLM(
+  (base_model): LoraModel(
+    (model): LlamaForCausalLM(
+      (model): LlamaModel(
+        (embed_tokens): Embedding(128256, 4096)
+        (layers): ModuleList(
+          (0-31): 32 x LlamaDecoderLayer(
+            (self_attn): LlamaSdpaAttention(
+              (q_proj): lora.Linear8bitLt(
+                (base_layer): Linear8bitLt(in_features=4096, out_features=4096, bias=False)
+                (lora_dropout): ModuleDict(
+                  (default): Identity()
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=4096, out_features=8, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=8, out_features=4096, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (k_proj): Linear8bitLt(in_features=4096, out_features=1024, bias=False)
+              (v_proj): lora.Linear8bitLt(
+                (base_layer): Linear8bitLt(in_features=4096, out_features=1024, bias=False)
+                (lora_dropout): ModuleDict(
+                  (default): Identity()
+                )
+                (lora_A): ModuleDict(
+                  (default): Linear(in_features=4096, out_features=8, bias=False)
+                )
+                (lora_B): ModuleDict(
+                  (default): Linear(in_features=8, out_features=1024, bias=False)
+                )
+                (lora_embedding_A): ParameterDict()
+                (lora_embedding_B): ParameterDict()
+                (lora_magnitude_vector): ModuleDict()
+              )
+              (o_proj): Linear8bitLt(in_features=4096, out_features=4096, bias=False)
+              (rotary_emb): LlamaRotaryEmbedding()
+            )
+            (mlp): LlamaMLP(
+              (gate_proj): Linear8bitLt(in_features=4096, out_features=14336, bias=False)
+              (up_proj): Linear8bitLt(in_features=4096, out_features=14336, bias=False)
+              (down_proj): Linear8bitLt(in_features=14336, out_features=4096, bias=False)
+              (act_fn): SiLU()
+            )
+            (input_layernorm): LlamaRMSNorm((4096,), eps=1e-05)
+            (post_attention_layernorm): LlamaRMSNorm((4096,), eps=1e-05)
+          )
+        )
+        (norm): LlamaRMSNorm((4096,), eps=1e-05)
+        (rotary_emb): LlamaRotaryEmbedding()
+      )
+      (lm_head): Linear(in_features=4096, out_features=128256, bias=False)
+    )
+  )
+)
+base_model.model.model.layers.0.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.0.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.0.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.0.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.1.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.1.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.1.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.1.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.2.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.2.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.2.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.2.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.3.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.3.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.3.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.3.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.4.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.4.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.4.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.4.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.5.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.5.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.5.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.5.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.6.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.6.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.6.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.6.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.7.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.7.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.7.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.7.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.8.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.8.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.8.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.8.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.9.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.9.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.9.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.9.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.10.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.10.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.10.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.10.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.11.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.11.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.11.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.11.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.12.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.12.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.12.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.12.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.13.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.13.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.13.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.13.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.14.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.14.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.14.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.14.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.15.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.15.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.15.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.15.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.16.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.16.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.16.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.16.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.17.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.17.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.17.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.17.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.18.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.18.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.18.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.18.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.19.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.19.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.19.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.19.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.20.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.20.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.20.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.20.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.21.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.21.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.21.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.21.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.22.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.22.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.22.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.22.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.23.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.23.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.23.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.23.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.24.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.24.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.24.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.24.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.25.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.25.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.25.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.25.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.26.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.26.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.26.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.26.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.27.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.27.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.27.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.27.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.28.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.28.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.28.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.28.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.29.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.29.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.29.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.29.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.30.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.30.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.30.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.30.self_attn.v_proj.lora_B.default.weight
+base_model.model.model.layers.31.self_attn.q_proj.lora_A.default.weight
+base_model.model.model.layers.31.self_attn.q_proj.lora_B.default.weight
+base_model.model.model.layers.31.self_attn.v_proj.lora_A.default.weight
+base_model.model.model.layers.31.self_attn.v_proj.lora_B.default.weight
+trainable params: 3407872 || all params: 8033669120 || trainable%: 0.04241987003816259
+{'loss': 0.8701, 'learning_rate': 2.75e-05, 'epoch': 2.0}
