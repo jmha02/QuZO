@@ -8,10 +8,10 @@ cd /home/jjc/project/QuZO/large_models
 
 # Common variables
 MODEL=mistralai/Mistral-7B-Instruct-v0.3
-WBIT=8
+WBIT=4
 ABIT=8
-GBIT=8
-TAG=INT8model-STE-QAT-LoRA
+GBIT=4
+TAG=INT4model-STE-QAT-LoRA
 
 # Function to evaluate a single task
 evaluate_task() {
@@ -38,8 +38,8 @@ evaluate_task() {
         --num_train 1 \
         --num_eval 1000 \
         --train_set_seed 0 \
-        --load_int4 false \
-        --load_int8 true \
+        --load_int4 true \
+        --load_int8 false \
         --lora \
         --lora_alpha 16 \
         --lora_r 8 \
@@ -59,8 +59,8 @@ evaluate_task "ReCoRD" 2 "1e-5"
 # # Evaluate SQuAD
 evaluate_task "SQuAD" 2 "3e-5"
 
-# # Evaluate DROP
-# evaluate_task "DROP" 1 "1e-5"
+# Evaluate DROP
+evaluate_task "DROP" 1 "1e-5"
 
 # # Evaluate MultiRC
 evaluate_task "MultiRC" 2 "5e-5"

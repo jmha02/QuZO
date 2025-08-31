@@ -12,4 +12,6 @@
 source /home/jjc/anaconda3/etc/profile.d/conda.sh
 conda activate llm_quzo
 cd /home/jjc/project/QuZO/large_models/script/
-bash mistral_quzo_exp_lora.sh
+# bash mistral_quzo_exp_lora.sh
+
+bash llama3_quzo_exp_lora.sh
