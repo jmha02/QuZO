@@ -57,14 +57,14 @@ pip install ./quant
 ```
 
 
-##To run:
+To run:
 
 ```bash
 cd /home/jjc/project/QuZO/large_models/script
 bash llama3_quzo_exp_lora.sh   
 ```
 
-##Model support
+Model support
 ---
 QuZO has been tested on:
 
@@ -76,7 +76,7 @@ QuZO has been tested on:
 It supports common fine-tuning tasks including `CAUSAL_LM`, `SEQ_2_SEQ_LM`, and `SEQ_CLS`. Check our config docs for model-specific integration.
 
 
-##Environment
+Environment
 ---
 Generally, the package is implemented based on `torch==2.1.2`, `python=3.10.13` and `transformers==4.38.2`. For a detailed
 list of environments we use, check `requirements.txt` or `environment.yml` files we provided.
