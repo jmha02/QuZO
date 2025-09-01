@@ -6,7 +6,10 @@ _Submitted to EMNLP 2025_
 
 ---
 
-QuZO introduces a **memory-efficient fine-tuning framework** for large language models (LLMs), leveraging **quantized zeroth-order (ZO) optimization** that eliminates gradient backpropagation and reduces memory footprint to near inference-level costs. Our approach enables **LLM adaptation on a single GPU**, even for models like LLaMA2-13B and OPT-30B, while maintaining competitive or superior accuracy compared to first-order and FP32-based ZO baselines (e.g., MeZO).
+This repository contains the official implementation for our paper “**QuZO: Quantized Zeroth-Order Optimization for Memory-Efficient Fine-Tuning of Large Language Models.**” We propose **QuZO**, a novel training framework that enables **efficient fine-tuning of quantized LLMs using quantized stochastic perturbations**, eliminating the need for backpropagation, gradient storage, or high-precision computation.
+
+QuZO significantly reduces memory consumption, supports low-bit training (INT8/INT4), and achieves strong accuracy across QA and NLU tasks — outperforming first-order and previous zeroth-order baselines, especially in extreme quantization settings.
+
 
 Key features include:
 
