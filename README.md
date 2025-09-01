@@ -86,10 +86,9 @@ Examples of reproducing the results in the paper
 We provide one detailed example to reproduce the experimental results in our paper, which are stored in folder  `large_models`. To reproduce our experiments, follow the instructions below:
 
 - Create the environment with the provided file `requirements.txt` or `environment.yml`
-- setup the parameters in `run_all_bert_exp.sh` or `run_all_large_exp.sh` in each folder, which mainly contains:
+- setup the parameters in `llama3_quzo_exp_lora.sh` or `mistral_quzo_exp_lora.sh` in each folder, which mainly contains:
   - MODEL: the name of the huggingface-enabled model
-  - TASK: the name of the datasets, which support `MNLI, SST2, COLA, QQP, QNLI, RTE, MRPC, STSB` for bert tests and 
-  `SST2, RTE, CB, BoolQ, WSC, WIC, MultiRC, Copa, ReCoRD, SQuAD, DROP` for llama tests
+  - TASK: the name of the datasets, which support `SST2, RTE, CB, BoolQ, WSC, WIC, MultiRC, Copa, ReCoRD, SQuAD, DROP` for llama tests
   - EPOCH/BS/LR: basic training argument for epochs, batch_size and learning_rate
   - DEVICE: the number of CUDA devices you would like to use `export CUDA_VISIBLE_DEVICES=$DEVICE`
   - For other arguments needed for the experiments, see `quzo.sh` for detail
