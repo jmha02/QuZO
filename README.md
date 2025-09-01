@@ -96,6 +96,11 @@ We provide one detailed example to reproduce the experimental results in our pap
   - DEVICE: the number of CUDA devices you would like to use `export CUDA_VISIBLE_DEVICES=$DEVICE`
   - For other arguments needed for the experiments, see `quzo.sh` for detail
 
+Evaluation
+---
+We evaluate our fine-tuned models using the [EleutherAI `lm-evaluation-harness`](https://github.com/EleutherAI/lm-evaluation-harness), which provides standardized accuracy metrics across various benchmark datasets:
+
+
 Cite our paper
 ---
 Note: The code is implemented based on an elder version of the [PEFT library](https://github.com/huggingface/peft/tree/main)
