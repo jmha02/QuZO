@@ -105,7 +105,7 @@ Cite our paper
 ---
 Note: The code is implemented based on an elder version of the [PEFT library](https://github.com/huggingface/peft/tree/main)
 
-To use Loretta in your publication, please cite it by using the following BibTeX entry.
+To use QuZO in your publication, please cite it by using the following BibTeX entry.
 ```angular2html
 @article{zhou2025quzo,
   title={QuZO: Quantized zeroth-order fine-tuning for large language models},
