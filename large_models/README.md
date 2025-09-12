@@ -67,7 +67,12 @@ NUM_GPU=$NUM_GPU TAG=Debug MODEL=meta-llama/Llama-2-7b-hf TASK=SST2 WBIT=4 ABIT=
 CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=meta-llama/Meta-Llama-3-8B TASK=SQuAD WBIT=8 PBIT=4 MODE=lora BS=4 LR=3e-5 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
 CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=meta-llama/Meta-Llama-3-8B TASK=DROP WBIT=8 PBIT=4 MODE=lora BS=4 LR=1e-5 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
 CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=meta-llama/Meta-Llama-3-8B TASK=MultiRC WBIT=8 PBIT=4 MODE=lora BS=8 LR=5e-5 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
-CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=meta-llama/Meta-Llama-3-8B TASK=ReCoRD WBIT=8 PBIT=4 MODE=lora BS=8 LR=1e-4 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
+CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=meta-llama/Meta-Llama-3-8B TASK=ReCoRD WBIT=8 PBIT=4 MODE=lora BS=8 LR=1e-4 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh
+
+CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=mistralai/Mistral-7B-Instruct-v0.3 TASK=DROP WBIT=4 PBIT=4 MODE=lora BS=4 LR=6e-6 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
+CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=mistralai/Mistral-7B-Instruct-v0.3 TASK=SQuAD WBIT=4 PBIT=4 MODE=lora BS=4 LR=1e-5 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
+CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=mistralai/Mistral-7B-Instruct-v0.3 TASK=MultiRC WBIT=4 PBIT=4 MODE=lora BS=4 LR=1e-4 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
+CUDA_VISIBLE_DEVICES=1 TAG=QuZO-LPmodel-LoRA-Ours MODEL=mistralai/Mistral-7B-Instruct-v0.3 TASK=ReCoRD WBIT=4 PBIT=4 MODE=lora BS=8 LR=1e-5 EPS=2e-3 TRAINER=zo_lowbit TWO=True STEPS=6000 bash quzo.sh 
 
 ```
 
