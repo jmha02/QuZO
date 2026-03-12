@@ -786,7 +786,10 @@ class OurTrainer(Trainer):
                 if args.trainer == "zo":
                     tr_loss_step = self.zo_step(model, inputs)
                 elif args.trainer == "zo_lowbit":
-                    tr_loss_step = self.lowbit_zo_step(model, inputs)
+                    if getattr(args, 'profile_zo', False):
+                        tr_loss_step = self.lowbit_zo_step_profiled(model, inputs, self.state.global_step)
+                    else:
+                        tr_loss_step = self.lowbit_zo_step(model, inputs)
                 else:
                     if (
                         ((step + 1) % args.gradient_accumulation_steps != 0)
@@ -825,7 +828,10 @@ class OurTrainer(Trainer):
                         self.zo_update(model)
                         grad_norm=None
                     elif args.trainer == "zo_lowbit":
-                        self.lowbit_zo_update(model)
+                        if getattr(args, 'profile_zo', False):
+                            self.lowbit_zo_update_profiled(model, self.state.global_step)
+                        else:
+                            self.lowbit_zo_update(model)
                         grad_norm=None
                     else:
                         # Gradient clipping
@@ -1403,6 +1409,275 @@ class OurTrainer(Trainer):
         self.lr_scheduler.step()
 
     
+    ############## Profiling functions ##############
+
+
+    def _sync_and_time(self):
+        """CUDA synchronize + high-resolution timer for accurate profiling."""
+        if torch.cuda.is_available():
+            torch.cuda.synchronize()
+        return time.perf_counter()
+
+    def lowbit_zo_step_profiled(self, model, inputs, global_step=0):
+        """
+        Profiled version of lowbit_zo_step. Measures wall-clock time and GPU memory for each sub-phase
+        including quantization, masking, and dequantization overhead.
+        """
+        args = self.args
+        interval = getattr(args, 'profile_zo_interval', 10)
+
+        # Memory tracking: reset peak before step
+        torch.cuda.reset_peak_memory_stats()
+        mem_before = torch.cuda.memory_allocated()
+
+        # Phase 0: Build parameter list
+        t0 = self._sync_and_time()
+        self.named_parameters_to_optim = []
+        for name, param in model.named_parameters():
+            if param.requires_grad:
+                self.named_parameters_to_optim.append((name, param))
+        t_param = self._sync_and_time()
+
+        iterations = self.args.num_pertub
+        projected_grad_list = []
+        zo_random_seed_list = []
+        iter_timings = []
+
+        for i in range(iterations):
+            it = {}
+            self.zo_random_seed = np.random.randint(1000000000)
+            zo_random_seed_list.append(self.zo_random_seed)
+
+            # Phase 1: Perturbation +ε (with quant pipeline)
+            t1 = self._sync_and_time()
+            self.zo_lowbitperturb_parameters(scaling_factor=1)
+            t2 = self._sync_and_time()
+            it['perturb_plus'] = t2 - t1
+
+            # Phase 2: Forward #1
+            loss1 = self.zo_forward(model, inputs)
+            t3 = self._sync_and_time()
+            it['forward_1'] = t3 - t2
+
+            # Phase 3: Perturbation -2ε
+            self.zo_lowbitperturb_parameters(scaling_factor=-2)
+            t4 = self._sync_and_time()
+            it['perturb_minus2'] = t4 - t3
+
+            # Phase 4: Forward #2
+            loss2 = self.zo_forward(model, inputs)
+            t5 = self._sync_and_time()
+            it['forward_2'] = t5 - t4
+
+            # Phase 5: Gradient compute + INT8 quantization
+            self.projected_grad = ((loss1 - loss2) / (2 * self.args.zo_eps))
+            max_abs_value = torch.max(torch.abs(self.projected_grad))
+            s = max_abs_value / 127
+            if s == 0:
+                s = 1e-3
+            quantized_grad = torch.round(self.projected_grad / s)
+            quantized_grad = torch.clamp(quantized_grad, -127, 127)
+            self.projected_grad = quantized_grad * s
+            t6 = self._sync_and_time()
+            it['grad_compute_and_quant'] = t6 - t5
+
+            projected_grad_list.append(self.projected_grad)
+            assert self.args.gradient_accumulation_steps == 1
+
+            # Phase 6: Perturbation restore +ε
+            self.zo_lowbitperturb_parameters(scaling_factor=1)
+            t7 = self._sync_and_time()
+            it['perturb_restore'] = t7 - t6
+
+            it['total_iteration'] = t7 - t1
+            iter_timings.append(it)
+
+        self.zo_random_seed = zo_random_seed_list
+        self.projected_grad = projected_grad_list
+
+        t_end = self._sync_and_time()
+        total_step = t_end - t0
+
+        mem_after_step = torch.cuda.memory_allocated()
+        mem_peak_step = torch.cuda.max_memory_allocated()
+
+        # Accumulate for averaging
+        if not hasattr(self, '_profile_accum'):
+            self._profile_accum = {
+                'param_list': 0, 'perturb_plus': 0, 'forward_1': 0,
+                'perturb_minus2': 0, 'forward_2': 0, 'grad_compute_and_quant': 0,
+                'perturb_restore': 0, 'total': 0, 'count': 0
+            }
+        if not hasattr(self, '_profile_mem_accum'):
+            self._profile_mem_accum = {
+                'mem_before': 0, 'mem_after_step': 0, 'mem_peak_step': 0, 'count': 0
+            }
+        acc = self._profile_accum
+        acc['param_list'] += t_param - t0
+        for it in iter_timings:
+            acc['perturb_plus'] += it['perturb_plus']
+            acc['forward_1'] += it['forward_1']
+            acc['perturb_minus2'] += it['perturb_minus2']
+            acc['forward_2'] += it['forward_2']
+            acc['grad_compute_and_quant'] += it['grad_compute_and_quant']
+            acc['perturb_restore'] += it['perturb_restore']
+        acc['total'] += total_step
+        acc['count'] += 1
+
+        macc = self._profile_mem_accum
+        macc['mem_before'] += mem_before
+        macc['mem_after_step'] += mem_after_step
+        macc['mem_peak_step'] += mem_peak_step
+        macc['count'] += 1
+
+        if acc['count'] % interval == 0:
+            n = acc['count']
+            t = acc['total']
+            K = iterations
+            print(f"\n{'='*70}")
+            print(f"  [QuZO] lowbit_zo_step Profiling — avg over {n} steps (step {global_step})")
+            print(f"  num_pertub={K}, perturb_bits={args.perturb_bits}, mask_ratio={getattr(args, 'mask_ratio', 'N/A')}")
+            print(f"{'='*70}")
+            for key in ['param_list', 'perturb_plus', 'forward_1', 'perturb_minus2',
+                        'forward_2', 'grad_compute_and_quant', 'perturb_restore']:
+                val = acc[key]
+                print(f"  {key:28s}: {val/n*1000:10.2f} ms  ({val/t*100:5.1f}%)")
+            fwd_total = acc['forward_1'] + acc['forward_2']
+            perturb_total = acc['perturb_plus'] + acc['perturb_minus2'] + acc['perturb_restore']
+            print(f"  {'--- Aggregated ---':28s}")
+            print(f"  {'forward_total (x' + str(2*K) + ')':28s}: {fwd_total/n*1000:10.2f} ms  ({fwd_total/t*100:5.1f}%)")
+            print(f"  {'perturb_total (x' + str(3*K) + ')':28s}: {perturb_total/n*1000:10.2f} ms  ({perturb_total/t*100:5.1f}%)")
+            print(f"  {'TOTAL STEP (avg)':28s}: {t/n*1000:10.2f} ms")
+            print(f"  {'Params optimized':28s}: {len(self.named_parameters_to_optim)}")
+            # Memory profiling
+            mn = macc['count']
+            print(f"  {'--- GPU Memory (avg) ---':28s}")
+            print(f"  {'mem_before_step':28s}: {macc['mem_before']/mn/1024**2:10.1f} MB")
+            print(f"  {'mem_after_step':28s}: {macc['mem_after_step']/mn/1024**2:10.1f} MB")
+            print(f"  {'mem_peak_during_step':28s}: {macc['mem_peak_step']/mn/1024**2:10.1f} MB")
+            print(f"  {'peak_overhead':28s}: {(macc['mem_peak_step']-macc['mem_before'])/mn/1024**2:10.1f} MB")
+            print(f"{'='*70}\n")
+
+        return loss1
+
+    def lowbit_zo_update_profiled(self, model, global_step=0):
+        """
+        Profiled version of lowbit_zo_update. Measures noise gen, quant, mask, dequant,
+        and param update time separately, plus GPU memory.
+        """
+        args = self.args
+        interval = getattr(args, 'profile_zo_interval', 10)
+        iterations = self.args.num_pertub
+
+        torch.cuda.reset_peak_memory_stats()
+        mem_before = torch.cuda.memory_allocated()
+
+        t0 = self._sync_and_time()
+
+        total_noise_gen = 0
+        total_quant = 0
+        total_mask = 0
+        total_dequant = 0
+        total_param_update = 0
+
+        for i in range(iterations):
+            zo_random_seed_update = self.zo_random_seed[i]
+            projected_grad = self.projected_grad[i]
+
+            for name, param in self.named_parameters_to_optim:
+                # Noise generation
+                t1 = self._sync_and_time()
+                torch.manual_seed(zo_random_seed_update)
+                fp_perturb = torch.normal(mean=0, std=1, size=param.data.size(),
+                                          device=param.data.device, dtype=param.data.dtype)
+                t2 = self._sync_and_time()
+                total_noise_gen += t2 - t1
+
+                # Quantization
+                if self.args.quantized_perturb_ours == True:
+                    quantized_perturb, s1, z1 = zo_quant(fp_perturb, nbits=self.args.perturb_bits,
+                                                          seed=zo_random_seed_update+4, stochastic=True)
+                else:
+                    quantized_perturb, s1, z1 = zo_quant(fp_perturb, nbits=self.args.perturb_bits,
+                                                          stochastic=False)
+                t3 = self._sync_and_time()
+                total_quant += t3 - t2
+
+                # Mask
+                mask = torch.rand_like(quantized_perturb) >= (getattr(self.args, 'mask_ratio', 50) / 100)
+                quantized_perturb = quantized_perturb * mask
+                t4 = self._sync_and_time()
+                total_mask += t4 - t3
+
+                # Dequant
+                z = zo_dequant(quantized_perturb, s1, z1)
+                t5 = self._sync_and_time()
+                total_dequant += t5 - t4
+
+                # Parameter update
+                if "bias" not in name and "layer_norm" not in name and "layernorm" not in name:
+                    param.data = param.data - self._get_learning_rate() * (projected_grad * z + args.weight_decay * param.data)
+                else:
+                    param.data = param.data - self._get_learning_rate() * (projected_grad * z)
+                t6 = self._sync_and_time()
+                total_param_update += t6 - t5
+
+                zo_random_seed_update += 2
+
+        self.lr_scheduler.step()
+        t_end = self._sync_and_time()
+        total_update = t_end - t0
+
+        mem_after = torch.cuda.memory_allocated()
+        mem_peak = torch.cuda.max_memory_allocated()
+
+        # Accumulate
+        if not hasattr(self, '_profile_update_accum'):
+            self._profile_update_accum = {
+                'noise_gen': 0, 'quant': 0, 'mask': 0, 'dequant': 0,
+                'param_update': 0, 'total': 0, 'count': 0
+            }
+        if not hasattr(self, '_profile_update_mem_accum'):
+            self._profile_update_mem_accum = {
+                'mem_before': 0, 'mem_after': 0, 'mem_peak': 0, 'count': 0
+            }
+        acc = self._profile_update_accum
+        acc['noise_gen'] += total_noise_gen
+        acc['quant'] += total_quant
+        acc['mask'] += total_mask
+        acc['dequant'] += total_dequant
+        acc['param_update'] += total_param_update
+        acc['total'] += total_update
+        acc['count'] += 1
+
+        macc = self._profile_update_mem_accum
+        macc['mem_before'] += mem_before
+        macc['mem_after'] += mem_after
+        macc['mem_peak'] += mem_peak
+        macc['count'] += 1
+
+        if acc['count'] % interval == 0:
+            n = acc['count']
+            t = acc['total']
+            print(f"\n{'='*70}")
+            print(f"  [QuZO] lowbit_zo_update Profiling — avg over {n} steps (step {global_step})")
+            print(f"{'='*70}")
+            n_params = len(self.named_parameters_to_optim)
+            print(f"  {'Params':24s}: {n_params}")
+            for key in ['noise_gen', 'quant', 'mask', 'dequant', 'param_update']:
+                val = acc[key]
+                print(f"  {key:24s}: {val/n*1000:10.2f} ms  ({val/t*100:5.1f}%)")
+            print(f"  {'TOTAL UPDATE (avg)':24s}: {t/n*1000:10.2f} ms")
+            # Memory profiling
+            mn = macc['count']
+            print(f"  {'--- GPU Memory (avg) ---':24s}")
+            print(f"  {'mem_before_update':24s}: {macc['mem_before']/mn/1024**2:10.1f} MB")
+            print(f"  {'mem_after_update':24s}: {macc['mem_after']/mn/1024**2:10.1f} MB")
+            print(f"  {'mem_peak_during_update':24s}: {macc['mem_peak']/mn/1024**2:10.1f} MB")
+            print(f"  {'update_peak_overhead':24s}: {(macc['mem_peak']-macc['mem_before'])/mn/1024**2:10.1f} MB")
+            print(f"{'='*70}\n")
+
+
     def lowbit_zo_ftupdate(self, model):
         """
         Update the parameters with the estimated gradients.

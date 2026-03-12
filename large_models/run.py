@@ -232,6 +232,10 @@ class OurArguments(TrainingArguments):
     ## For quantization
 
     # mode: str = "int"
+    # Profiling
+    profile_zo: bool = False  # enable ZO step profiling (prints per-step timing breakdown)
+    profile_zo_interval: int = 10  # print profiling info every N steps
+
     mode: str = "int"
     wbit: int = 8
     abit: int = 8
@@ -824,7 +828,7 @@ class Framework:
                        param.requires_grad = True
 # Register pre-hooks on all `nn.Linear` layers
         for module in self.model.modules():
-                    if isinstance(module, nn.Linear):
+                    if isinstance(module, torch.nn.Linear):
                             print("gradient quant")
                             module.register_full_backward_pre_hook(pre_backward_hook)
             
@@ -832,8 +836,8 @@ class Framework:
         print(self.model)
         print_trainable_parameters(self.model)
 
-        if self.args.model_name == "meta-llama/Meta-Llama-3-8B" or self.args.model_name == "mistralai/Mistral-7B-Instruct-v0.3":
-            # from trainer_zo_new import OurTrainer
+        # Route to trainer_llama3 for any LLaMA/Mistral architecture model
+        if getattr(self.model.config, 'model_type', '') in ('llama', 'mistral'):
             from trainer_llama3 import OurTrainer
         else:
             from trainer_new import OurTrainer
